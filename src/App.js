@@ -328,12 +328,16 @@ class App extends Component {
     this.setState(newState);
   }
 
-  isRowAndColIndexSet(rowIndex, colIndex){
-    if((typeof rowIndex == 'number') && (typeof colIndex == 'number')) return true;
-    return false;
+  /*
+   * Just a simple delay function that returns a Promise
+   *
+   * @param t the time in milliseconds you want to delay
+   */
+  delay(t) {
+    return new Promise(function(resolve) {
+      setTimeout(resolve, t)
+    });
   }
-
-
 
   toggle(rowIndex, colIndex, excludeRowIndex, excludeColIndex){
     let newState = this.state;
@@ -346,8 +350,51 @@ class App extends Component {
     }
 
     if( this.mineAtLocation(rowIndex, colIndex, this.state.mines) ){
-      newState.squares = this.pressButton(rowIndex, colIndex, newState.squares);
+      let revealMines = new Promise(function(resolve) {
+        let newState = this.state;
+        for(let m=0; m<this.state.mines.length; m++){
+          newState.squares = this.pressButton(this.state.mines[m].row, this.state.mines[m].col, newState.squares);
+        }
+        this.setState(newState);
+        resolve();
+      }.bind(this));
+
+      let signalGameOver = new Promise(function(resolve){
+        alert("Game over man! Game over!\nYour game will be reset in 3 seconds after clicking 'ok'");
+        resolve();
+      });
+
+      signalGameOver.then(() => {return revealMines}).then(()=>{
+        return this.delay(3000).then( ()=>{
+          let newState = this.state;
+          newState.numRows = 0;
+          newState.numCols = 0;
+          newState.numMines = 0;
+          newState.squares = [];
+          newState.mines = [];
+          newState.indicatingSquares = [];
+          newState.triggeringSquares = [];
+          this.setState(newState);
+
+          //now reset form values
+          this.refs.numCols.value = "";
+          this.refs.numRows.value = "";
+          this.refs.numMines.value = "";
+        } );
+      });
+
+      //const finishTheGame = time => new Promise((resolve) => setTimeout(resolve, time));
+      //now reset the board
+      /*
+      newState.numRows = 0;
+      newState.numCols = 0;
+      newState.numMines = 0;
+      newState.squares = [];
+      newState.mines = [];
+      newState.indicatingSquares = [];
+      newState.triggeringSquares = [];
       this.setState(newState);
+      */
       return;
     }
 
@@ -385,7 +432,7 @@ class App extends Component {
 
 
   handleClick(rowIndex, colIndex){
-    this.toggle(rowIndex, colIndex,"","");
+    this.toggle(rowIndex, colIndex);
   }
 
 
@@ -403,16 +450,19 @@ class App extends Component {
         </p>
         <form onSubmit={this.handleSubmit}>
           <input name="numRows"
+             ref="numRows"
              type="text"
              placeholder="Enter Rows"
              onChange={this.handleChange}
              required/>
           <input name="numCols"
+            ref="numCols"
             type="text"
             placeholder="Enter Cols"
             onChange={this.handleChange}
             required/>
           <input name="numMines"
+            ref="numMines"
             type="text"
             placeholder="Enter Number of Mines"
             onChange={this.handleChange}

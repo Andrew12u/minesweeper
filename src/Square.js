@@ -67,43 +67,7 @@ class Square extends React.Component {
     }
   }
 
-  /*
-  getSquareState(){
-    switch(this.state.currently_showing){
-      case "exploded":
-        return( { pressedStyle: { background: "url(" + mine_exploded + ")" } });
-      case "detected":
-        return( { pressedStyle: { background: "url(" + mine_detected + ")" } });
-      case "eliminated":
-        return( { pressedStyle: { background: "url(" + mine_eliminated + ")" } });
-      case "flagged":
-        return( { pressedStyle: { background: "url(" + mine_flagged + ")" } });
-      case "possibyDetected":
-        return( { pressedStyle: { background: "url(" + mine_possiblyDetected + ")" } });
-      case "possiblyUndetected":
-        return( { pressedStyle: { background: "url(" + mine_possiblyUndetected + ")" } });
-      case "isOne":
-        return( { pressedStyle: { background: "url(" + isOne + ")" } });
-      case "isTwo":
-        return( { pressedStyle: { background: "url(" + isTwo + ")" } });
-      case "isThree":
-        return( { pressedStyle: { background: "url(" + isThree + ")" } });
-      case "isFour":
-        return( { pressedStyle: { background: "url(" + isFour + ")" } });
-      case "isFive":
-        return( { pressedStyle: { background: "url(" + isFive + ")" } });
-      case "isSix":
-        return( { pressedStyle: { background: "url(" + isSix + ")" } });
-      case "isSeven":
-        return( { pressedStyle: { background: "url(" + isSeven + ")" } });
-      case "isEight":
-        return( { pressedStyle: { background: "url(" + isEight + ")" } });
-    }
-  }
-  */
-  //
   createSquare(condition){
-    //let theme = this.getSquareState(condition);
     switch(condition) {
       case "unknown":
           return(<Button className="minesweeper_button"

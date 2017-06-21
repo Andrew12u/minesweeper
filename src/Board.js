@@ -42,7 +42,7 @@ class Board extends React.Component {
                            isReally={isReallyState}
                            condition={"unknown"}
                            row={rowIndex} col={colIndex}
-                           onClick={() => this.props.onClick(rowIndex, colIndex,"","")}/>);
+                           onClick={() => this.props.onClick(rowIndex, colIndex)}/>);
     }
     return squares || null;
   }
@@ -67,32 +67,6 @@ class Board extends React.Component {
     }
     return "";
   }
-
-  /*
-  getSquareState(rowIndex, colIndex){
-    if(this.isMine(rowIndex, colIndex)) return "mine";
-    if(this.isMarkedIndicatingSquare(rowIndex, colIndex)) return this.getIndicatingSquareCount(rowIndex, colIndex);
-    return "blank";
-  }
-  */
-
-
-  /*
-  generateColumns(rowIndex, numCols){
-    let squares = [];
-    for(let colIndex=0; colIndex<numCols; colIndex++){
-      if((this.props.mines) && (this.props.mines.length > 0)){
-        if(this.isMine(rowIndex, colIndex)){
-          squares.push(<Square key={colIndex + numCols} isMine={true} pressed={false} condition={"unknown"} row={rowIndex} col={colIndex} />);
-          continue;
-        }
-      }
-      squares.push(<Square key={colIndex + numCols} pressed={false} condition={"unknown"} row={rowIndex} col={colIndex} />);
-    }
-    return squares || null;
-  }
-  */
-
 
   isMine(row, col){
     for(let m=0; m<this.props.mines.length; m++){
