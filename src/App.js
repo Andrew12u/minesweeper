@@ -12,7 +12,7 @@ class App extends Component {
       squares:[],
       mines:[],
       indicatingSquares:[],
-      calledSqaures:[]
+      triggeringSquares:[]
     }
     //this.mines = [];
     this.handleChange = this.handleChange.bind(this);
@@ -282,22 +282,58 @@ class App extends Component {
     return newSquares;
   }
 
-  trimBorderSquares(rowIndex, colIndex, borderSquares){
-    let newBoarderSquares = [];
+  /*
+   * Checks to see if square {rowIndex, colIndex} has triggered a recursive call
+   */
+  squareTriggeredRecursion(rowIndex, colIndex){
+    for(let t=0; t<this.state.triggeringSquares.length; t++){
+      if( (this.state.triggeringSquares[t].row == rowIndex) &&
+          (this.state.triggeringSquares[t].col == colIndex) )
+          return true;
+    }
+    return false;
+  }
+  /*
+   * Trims border squares that have already performed a recursive call.
+   *
+   * @param borderSquares squares surrounding {row, col} that need to be trimmedBorderSquares
+   */
+  trimBorderSquares(borderSquares){
+    let trimmedBorderSquares = [];
+
     for(let b=0; b<borderSquares.length; b++){
-      if(borderSquares[b].row == rowIndex){
-        if(borderSquares[b].col == colIndex){
-          continue;
-        }
-      }
-      newBoarderSquares.push({
+      if(this.squareTriggeredRecursion(borderSquares[b].row, borderSquares[b].col))
+        continue;
+      trimmedBorderSquares.push({
         row: borderSquares[b].row,
         col: borderSquares[b].col
-      })
-
+      });
     }
-    return newBoarderSquares;
+
+    return trimmedBorderSquares;
   }
+
+  addTriggeringSquaresToState(triggeringSquares){
+    let newState = this.state;
+
+    for(let t=0; t<triggeringSquares.length; t++){
+      newState.triggeringSquares.push(
+        {
+          row: triggeringSquares[t].row,
+          col: triggeringSquares[t].col
+        }
+      );
+    }
+
+    this.setState(newState);
+  }
+
+  isRowAndColIndexSet(rowIndex, colIndex){
+    if((typeof rowIndex == 'number') && (typeof colIndex == 'number')) return true;
+    return false;
+  }
+
+
 
   toggle(rowIndex, colIndex, excludeRowIndex, excludeColIndex){
     let newState = this.state;
@@ -319,24 +355,31 @@ class App extends Component {
     newState.squares = this.pressButton(rowIndex, colIndex, newState.squares);
     this.setState(newState);
 
+    //get surrounding squares to the one you just clicked
     let borderSquares = this.getBoarderSquares(rowIndex, colIndex);
     let trimmedBorderSquares;
+    //check to see if there have been any recursive calls
+    if(this.state.triggeringSquares.length > 0){
+      //check to see if any of the border squares have performed a recursive call
+      trimmedBorderSquares = this.trimBorderSquares(borderSquares);
 
-    if((typeof excludeRowIndex == 'number') && (typeof excludeColIndex == 'number')){
-      trimmedBorderSquares = this.trimBorderSquares(excludeRowIndex, excludeColIndex, borderSquares);
-      for(let b=0; b<trimmedBorderSquares.length; b++){
-        this.toggle(trimmedBorderSquares[b].row, trimmedBorderSquares[b].col, rowIndex, colIndex);
+      //if all border squares have been trimmed, there's nothing to do, so return
+      if(trimmedBorderSquares.length == 0) return;
+
+      //if they haven't performed a recursive call, they will, so we need to add to state
+      this.addTriggeringSquaresToState(trimmedBorderSquares);
+      //now trigger those border squares that haven't recursively called anything
+      for(let t=0; t<trimmedBorderSquares.length; t++){
+        this.toggle(trimmedBorderSquares[t].row, trimmedBorderSquares[t].col);
       }
-    } else {
-      for(let b=0; b<borderSquares.length; b++){
-        this.toggle(borderSquares[b].row, borderSquares[b].col, rowIndex, colIndex);
+    } else{ //there hasn't been a recursive call yet
+      //so it should be safe to recursively call border squares
+      //but you should add them to state first.
+      this.addTriggeringSquaresToState(borderSquares);
+      for(let t=0; t<borderSquares.length; t++){
+        this.toggle(borderSquares[t].row, borderSquares[t].col);
       }
     }
-
-
-
-
-
   }
 
 
