@@ -1,9 +1,9 @@
 * Current selection of a blank square will lead to a stack overflow.  
 
-* This might be to border squares being squares that triggered the recursive
+* This might be due to border squares being squares that triggered the recursive
 call in the first place. An attempt was made to account for this, but in
 reality, perhaps all recursive callers (e.g. {row, col} squares that triggered
-the recursive call) need to be set within state and checked against. 
+the recursive call) need to be set within state and checked against.
 
 What's done:
 1. Dynamic board generation
