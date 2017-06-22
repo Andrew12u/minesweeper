@@ -34,15 +34,19 @@ class Board extends React.Component {
     let squares = [];
     let pressedState;
     let isReallyState = "";
+    let condition = "";
     for(let colIndex=0; colIndex<numCols; colIndex++){
       pressedState = this.getSquarePressState(rowIndex, colIndex, this.props.squares);
       isReallyState = this.getSquareState(rowIndex, colIndex, this.props.squares);
+      condition =  this.getSquareCondition(rowIndex, colIndex, this.props.squares);
       squares.push(<Square key={colIndex + numCols}
                            pressed={pressedState}
                            isReally={isReallyState}
-                           condition={"unknown"}
+                           condition={condition}
                            row={rowIndex} col={colIndex}
-                           onClick={() => this.props.onClick(rowIndex, colIndex)}/>);
+                           onClick={() => this.props.onClick(rowIndex, colIndex)}
+                           onRightClick={(event) => this.props.onRightClick(event, rowIndex, colIndex)} />
+                  );
     }
     return squares || null;
   }
@@ -62,6 +66,17 @@ class Board extends React.Component {
       if(squares[s].row == row){
         if(squares[s].col == col){
           return squares[s].isReally;
+        }
+      }
+    }
+    return "";
+  }
+
+  getSquareCondition(row, col, squares){
+    for(let s=0; s<squares.length; s++){
+      if(squares[s].row == row){
+        if(squares[s].col == col){
+          return squares[s].condition;
         }
       }
     }

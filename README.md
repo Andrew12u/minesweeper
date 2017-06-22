@@ -8,8 +8,8 @@ What's done:
 2. Finding count of nearby mines
 3. Click expansion upon clicking a blank space.
 4. Win/loss notification
+5. Added flag functionality
 
 What needs to be done:
-1. Add flag functionality
-2. Cleanup
-3. Testing
+1. Cleanup
+2. Testing

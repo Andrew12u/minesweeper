@@ -67,13 +67,32 @@ class Square extends React.Component {
     }
   }
 
+  getConditionState(condition){
+    switch(condition){
+      case "flagged":
+        return( { pressedStyle: { background: "url(" + mine_flagged + ")" } });
+    }
+  }
+  /*
+  onRightClick(event){
+    event.preventDefault();
+    this.props.onRightClick();
+  }
+  */
+
   createSquare(condition){
     switch(condition) {
       case "unknown":
           return(<Button className="minesweeper_button"
                          theme={this.getSquareState(this.props.isReally)}
                          pressed={this.props.pressed}
-                         onClick={() => this.props.onClick()}/>);
+                         onClick={() => this.props.onClick()}
+                         onContextMenu={(event) => this.props.onRightClick(event)} />);
+     case "flagged": //note the absence of the onClick() event. This should prevent user click 
+         return(<Button className="minesweeper_button"
+                        theme={this.getConditionState(this.props.condition)}
+                        pressed={this.props.pressed}
+                        onContextMenu={(event) => this.props.onRightClick(event)} />);
       default:
           return(<Button className="minesweeper_button" value="E"/>);
     }

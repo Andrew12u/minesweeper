@@ -40,7 +40,8 @@ class App extends Component {
           row: r,
           col: c,
           pressed: false,
-          isReally: ""
+          isReally: "",
+          condition: "unknown"
         });
       }
     }
@@ -339,7 +340,7 @@ class App extends Component {
     });
   }
 
-  toggle(rowIndex, colIndex, excludeRowIndex, excludeColIndex){
+  toggle(rowIndex, colIndex){
     let newState = this.state;
     let square = this.getSquare(rowIndex, colIndex);
 
@@ -383,18 +384,6 @@ class App extends Component {
         } );
       });
 
-      //const finishTheGame = time => new Promise((resolve) => setTimeout(resolve, time));
-      //now reset the board
-      /*
-      newState.numRows = 0;
-      newState.numCols = 0;
-      newState.numMines = 0;
-      newState.squares = [];
-      newState.mines = [];
-      newState.indicatingSquares = [];
-      newState.triggeringSquares = [];
-      this.setState(newState);
-      */
       return;
     }
 
@@ -429,10 +418,52 @@ class App extends Component {
     }
   }
 
+  pressButton(rowIndex, colIndex, squares){
+    let newSquares = squares;
+    for(let s=0; s<newSquares.length; s++){
+      if(newSquares[s].row == rowIndex){
+        if(newSquares[s].col == colIndex){
+          newSquares[s].pressed = true;
+        }
+      }
+    }
+    return newSquares;
+  }
+
+  toggleFlag(rowIndex, colIndex){
+    let newState = this.state;
+    let square = this.getSquare(rowIndex, colIndex);
+    if(square.condition === "unknown"){
+      for(let s=0; s<newState.squares.length; s++){
+        if(newState.squares[s].row == rowIndex){
+          if(newState.squares[s].col == colIndex){
+            newState.squares[s].condition = "flagged";
+            newState.squares[s].pressed = true;
+          }
+        }
+      }
+      this.setState(newState);
+    } else if(square.condition === "flagged"){
+      for(let s=0; s<newState.squares.length; s++){
+        if(newState.squares[s].row == rowIndex){
+          if(newState.squares[s].col == colIndex){
+            newState.squares[s].condition = "unknown";
+            newState.squares[s].pressed = false;
+          }
+        }
+      }
+      this.setState(newState);
+    }
+  }
 
 
   handleClick(rowIndex, colIndex){
     this.toggle(rowIndex, colIndex);
+  }
+
+  handleRightClick(event, rowIndex, colIndex){
+    event.preventDefault();
+    this.toggleFlag(rowIndex, colIndex);
   }
 
 
@@ -471,7 +502,8 @@ class App extends Component {
         <Board squares={this.state.squares}
                rows={this.state.numRows}
                cols={this.state.numCols}
-               onClick={(row, col) => this.handleClick(row, col)}/>
+               onClick={(row, col) => this.handleClick(row, col)}
+               onRightClick={(event, row, col) => this.handleRightClick(event, row, col)}/>
       </div>
     );
   }
