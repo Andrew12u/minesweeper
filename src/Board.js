@@ -4,9 +4,7 @@ import Square from './Square';
 
 //TODO can this be made stateless?
 class Board extends React.Component {
-  constructor(props){
-    super(props);
-  }
+
   render(){
     return(
       <div>
@@ -36,9 +34,9 @@ class Board extends React.Component {
     let isReallyState = "";
     let condition = "";
     for(let colIndex=0; colIndex<numCols; colIndex++){
-      pressedState = this.getSquarePressState(rowIndex, colIndex, this.props.squares);
-      isReallyState = this.getSquareState(rowIndex, colIndex, this.props.squares);
-      condition =  this.getSquareCondition(rowIndex, colIndex, this.props.squares);
+      pressedState = this.props.getSquarePressState(rowIndex, colIndex);
+      isReallyState = this.props.getSquareState(rowIndex, colIndex);
+      condition =  this.props.getSquareCondition(rowIndex, colIndex);
       squares.push(<Square key={colIndex + numCols}
                            pressed={pressedState}
                            isReally={isReallyState}
@@ -50,66 +48,6 @@ class Board extends React.Component {
     }
     return squares || null;
   }
-
-  getSquarePressState(row, col, squares){
-    for(let s=0; s<squares.length; s++){
-      if(squares[s].row == row){
-        if(squares[s].col == col){
-          return squares[s].pressed;
-        }
-      }
-    }
-  }
-
-  getSquareState(row, col, squares){
-    for(let s=0; s<squares.length; s++){
-      if(squares[s].row == row){
-        if(squares[s].col == col){
-          return squares[s].isReally;
-        }
-      }
-    }
-    return "";
-  }
-
-  getSquareCondition(row, col, squares){
-    for(let s=0; s<squares.length; s++){
-      if(squares[s].row == row){
-        if(squares[s].col == col){
-          return squares[s].condition;
-        }
-      }
-    }
-    return "";
-  }
-
-  isMine(row, col){
-    for(let m=0; m<this.props.mines.length; m++){
-      if(this.props.mines[m].row === row)
-        if(this.props.mines[m].col === col)
-          return true;
-    }
-    return false;
-  }
-
-  isMarkedIndicatingSquare(row, col){
-    for(let m=0; m<this.props.indicatingSquares.length; m++){
-      if(this.props.indicatingSquares[m].row === row)
-        if(this.props.indicatingSquares[m].col === col)
-          return true;
-    }
-    return false;
-  }
-
-  getIndicatingSquareCount(row, col){
-    for(let m=0; m<this.props.indicatingSquares.length; m++){
-      if(this.props.indicatingSquares[m].row === row)
-        if(this.props.indicatingSquares[m].col === col)
-          return this.props.indicatingSquares[m].numNeabyMines.toString();
-    }
-    return -1;
-  }
-
 }
 
 export default Board;

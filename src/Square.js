@@ -1,16 +1,11 @@
 /*React Core Stuff*/
 import React from 'react';
 /*React DOM Stuff*/
-import ReactDOM from 'react-dom';
 import Button from 'react-button';
 /*My Stuff*/
 import './css/Square.css';
-import mine_detected from './images/mine_detected.png';
-import mine_eliminated from './images/mine_eliminated.png';
 import mine_exploded from './images/mine_exploded.png';
 import mine_flagged from './images/mine_flagged.png';
-import mine_possiblyDetected from './images/mine_possiblyDetected.png';
-import mine_possiblyUndetected from './images/mine_possiblyUndetected.png';
 import isOne from './images/isOne.png';
 import isTwo from './images/isTwo.png';
 import isThree from './images/isThree.png';
@@ -19,30 +14,10 @@ import isFive from './images/isFive.png';
 import isSix from './images/isSix.png';
 import isSeven from './images/isSeven.png';
 import isEight from './images/isEight.png';
+import error from './images/error.png';
 
 
-//TODO can this be made stateless?
 class Square extends React.Component {
-  constructor(props){
-    super(props);
-    this.state={
-      position:{
-        rowIndex: props.row,
-        colIndex: props.col
-      },
-      currently_showing: props.currently_showing,
-      pressed: props.pressed
-    }
-    this.toggle = this.toggle.bind(this);
-  }
-
-
-  toggle(){
-    let newState = this.state;
-    newState.pressed = !this.props.pressed;
-    this.setState({newState});
-  }
-
 
   getSquareState(isReallyState){
     switch(isReallyState){
@@ -64,6 +39,8 @@ class Square extends React.Component {
         return( { pressedStyle: { background: "url(" + isSeven + ")" } });
       case "8":
         return( { pressedStyle: { background: "url(" + isEight + ")" } });
+      default: //default is the normal behavior or the react-button theme
+        return;
     }
   }
 
@@ -71,14 +48,10 @@ class Square extends React.Component {
     switch(condition){
       case "flagged":
         return( { pressedStyle: { background: "url(" + mine_flagged + ")" } });
+      default: // you should only get in this function if condition === "flagged"
+        return( { pressedStyle: { background: "url(" + error + ")" } } );
     }
   }
-  /*
-  onRightClick(event){
-    event.preventDefault();
-    this.props.onRightClick();
-  }
-  */
 
   createSquare(condition){
     switch(condition) {
@@ -88,7 +61,7 @@ class Square extends React.Component {
                          pressed={this.props.pressed}
                          onClick={() => this.props.onClick()}
                          onContextMenu={(event) => this.props.onRightClick(event)} />);
-     case "flagged": //note the absence of the onClick() event. This should prevent user click 
+     case "flagged": //note the absence of the onClick() event. This should prevent user click
          return(<Button className="minesweeper_button"
                         theme={this.getConditionState(this.props.condition)}
                         pressed={this.props.pressed}

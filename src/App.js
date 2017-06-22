@@ -462,12 +462,41 @@ class App extends Component {
   }
 
   handleRightClick(event, rowIndex, colIndex){
-    event.preventDefault();
+    event.preventDefault(); //need the event to prevent context menu
     this.toggleFlag(rowIndex, colIndex);
   }
 
+  getSquarePressState(row, col){
+    for(let s=0; s<this.state.squares.length; s++){
+      if(this.state.squares[s].row == row){
+        if(this.state.squares[s].col == col){
+          return this.state.squares[s].pressed;
+        }
+      }
+    }
+  }
 
+  getSquareState(row, col){
+    for(let s=0; s<this.state.squares.length; s++){
+      if(this.state.squares[s].row == row){
+        if(this.state.squares[s].col == col){
+          return this.state.squares[s].isReally;
+        }
+      }
+    }
+    return "";
+  }
 
+  getSquareCondition(row, col){
+    for(let s=0; s<this.state.squares.length; s++){
+      if(this.state.squares[s].row == row){
+        if(this.state.squares[s].col == col){
+          return this.state.squares[s].condition;
+        }
+      }
+    }
+    return "";
+  }
 
 
   render() {
@@ -503,7 +532,10 @@ class App extends Component {
                rows={this.state.numRows}
                cols={this.state.numCols}
                onClick={(row, col) => this.handleClick(row, col)}
-               onRightClick={(event, row, col) => this.handleRightClick(event, row, col)}/>
+               onRightClick={(event, row, col) => this.handleRightClick(event, row, col)}
+               getSquarePressState={(row, col) => this.getSquarePressState(row, col)}
+               getSquareState={(row, col) => this.getSquareState(row, col)}
+               getSquareCondition={(row, col) => this.getSquareCondition(row, col)} />
       </div>
     );
   }

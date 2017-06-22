@@ -1,6 +1,6 @@
-To run:
-fetch dependencies: npm install
-run: npm start
+
+* fetch dependencies: npm install
+* run: npm start
 
 
 What's done:
