@@ -4,6 +4,9 @@ import React from 'react';
 import Button from 'react-button';
 /*My Stuff*/
 import './css/Square.css';
+
+//Why all the uneeded imports?
+//Couldn't get it to work with backticked inline styles
 import mine_exploded from './images/mine_exploded.png';
 import mine_flagged from './images/mine_flagged.png';
 import isOne from './images/isOne.png';

@@ -264,7 +264,6 @@ class App extends Component {
         }
       }
     }
-    return null;
   }
 
   isNumber(val){
@@ -467,37 +466,19 @@ class App extends Component {
   }
 
   getSquarePressState(row, col){
-    for(let s=0; s<this.state.squares.length; s++){
-      if(this.state.squares[s].row == row){
-        if(this.state.squares[s].col == col){
-          return this.state.squares[s].pressed;
-        }
-      }
-    }
+    let square = this.getSquare(row, col);
+    if(square) return square.pressed;
   }
 
   getSquareState(row, col){
-    for(let s=0; s<this.state.squares.length; s++){
-      if(this.state.squares[s].row == row){
-        if(this.state.squares[s].col == col){
-          return this.state.squares[s].isReally;
-        }
-      }
-    }
-    return "";
+    let square = this.getSquare(row, col);
+    if(square) return square.isReally;
   }
 
   getSquareCondition(row, col){
-    for(let s=0; s<this.state.squares.length; s++){
-      if(this.state.squares[s].row == row){
-        if(this.state.squares[s].col == col){
-          return this.state.squares[s].condition;
-        }
-      }
-    }
-    return "";
+    let square = this.getSquare(row, col);
+    if(square) return square.condition;
   }
-
 
   render() {
     return (
