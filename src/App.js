@@ -9,10 +9,12 @@ class App extends Component {
       numRows:0,
       numCols:0,
       numMines:0,
-      squares:[],
-      mines:[],
-      indicatingSquares:[],
-      triggeringSquares:[]
+      squares:{},
+      mines:{},
+      indicatingSquares:{},
+      triggeringSquares:{
+        count:0
+      }
     }
     //this.mines = [];
     this.handleChange = this.handleChange.bind(this);
@@ -33,18 +35,21 @@ class App extends Component {
   getBoard(){
     let numRows = this.state.numRows;
     let numCols = this.state.numCols;
-    let newBoard = [];
+    let newBoard = {};
+    let count = 0;
     for(let r=0; r<numRows; r++){
       for(let c=0; c<numCols; c++){
-        newBoard.push({
+        newBoard["square-"+ r + "-" + c] = {
           row: r,
           col: c,
           pressed: false,
           isReally: "",
           condition: "unknown"
-        });
+        }
+        count++;
       }
     }
+    newBoard["count"] = count;
     return newBoard;
   }
 
@@ -54,7 +59,7 @@ class App extends Component {
    * game will *not* reset if the number of mines isn't different
    */
   gameNeedsReset(){
-    if((!this.state.numMines) || (this.state.mines.length == this.state.numMines)){
+    if((!this.state.numMines) || (this.state.mines["count"] == this.state.numMines)){
       return false; //game doesn't need to be reset
     }
     return true; //games needs to be reset
@@ -68,13 +73,7 @@ class App extends Component {
   }
 
   mineAtLocation(row, col, mines){
-    for(let m=0; m<mines.length; m++){
-      if(mines[m].row === row){
-        if(mines[m].col === col){
-          return true;
-        }
-      }
-    }
+    if(mines["mine-" + row + "-" + col]) return true;
     return false;
   }
 
@@ -84,26 +83,34 @@ class App extends Component {
     let minCols = 0, maxCols = this.state.numCols;
     let row = 0,     col = 0;
 
-    let mines = [];
+    let mines = {};
+    let count = 0;
 
     for(let m=0; m<this.state.numMines; m++){
       row = this.getRandomBetweenIntegers(minRows, maxRows-1); //-1 since inclusive
       col = this.getRandomBetweenIntegers(minCols, maxCols-1); //-1 since inclusive
+
       if(m == 0){ //first mine, there will be no dupes
-        mines.push({
-          row:row,
-          col:col
-        });
+        mines["mine-" + row + "-" + col] = {
+          row: row,
+          col: col
+        }
+        count++;
+        mines["count"] = count;
         continue;
       }
       while(this.mineAtLocation(row, col, mines)){ //dupe encountered need new values
         row = this.getRandomBetweenIntegers(minRows, maxRows-1);
         col = this.getRandomBetweenIntegers(minCols, maxCols-1);
       }
-      mines.push({
-        row:row,
-        col:col
-      });
+
+      mines["mine-" + row + "-" + col] = {
+        row: row,
+        col: col
+      }
+
+      count++;
+      mines["count"] = count;
     }
 
     return mines;
@@ -123,7 +130,7 @@ class App extends Component {
     //square should be within bounds.
     return true;
   }
-  getBoarderSquares(row, col){
+  getBorderSquares(row, col){
     let realBoaderSquares = [];
     let possBoarderSquares = [
       {row: row-1, col: col},
@@ -146,18 +153,18 @@ class App extends Component {
    * surrounding one mine. That is, returns squares denoting # of nearby mines.
    * @param boarderSquares an array of {row:row, col:col} objs surrounding mine
    */
-  getIndicatingSquares(boarderSquares, mines){
+  getIndicatingSquares(borderSquares, mines){
     let indicatingSquares = [];
-    for(let b=0; b<boarderSquares.length; b++){
-      if(!this.mineAtLocation(boarderSquares[b].row, boarderSquares[b].col, mines))
-        indicatingSquares.push(boarderSquares[b]);
+    for(let b=0; b<borderSquares.length; b++){
+      if(!this.mineAtLocation(borderSquares[b].row, borderSquares[b].col, mines))
+        indicatingSquares.push(borderSquares[b]);
     }
     return indicatingSquares;
   }
 
   getCountOfNearbyMines(row, col, mines){
     let mineCount = 0;
-    let possMineLocations = this.getBoarderSquares(row, col);
+    let possMineLocations = this.getBorderSquares(row, col);
     for(let b=0; b<possMineLocations.length; b++){
       if(this.mineAtLocation(possMineLocations[b].row, possMineLocations[b].col, mines)) mineCount++;
     }
@@ -165,42 +172,52 @@ class App extends Component {
   }
 
   isMarkedIndicatingSquare(row, col, currentIndicatingSquares){
-    for(let i=0; i<currentIndicatingSquares.length; i++){
-      if(currentIndicatingSquares[i].row === row){
-        if(currentIndicatingSquares[i].col === col){
-          return true;
-        }
-      }
-    }
+    if(currentIndicatingSquares['indict-' + row + '-' + col]) return true;
     return false;
   }
 
 
   prepIndicatingSquares(mines){
-    let indicatingSquares_prepped = [];
-    let boarderSquares = [];
-    let indicatingSquares_notSet = [];
-    for(let m=0; m<mines.length; m++){
-      boarderSquares = this.getBoarderSquares(mines[m].row, mines[m].col);
-      indicatingSquares_notSet = this.getIndicatingSquares(boarderSquares, mines);
-      for(let i=0; i<indicatingSquares_notSet.length; i++){
-        let row = indicatingSquares_notSet[i].row;
-        let col = indicatingSquares_notSet[i].col;
-        let numNeabyMines = this.getCountOfNearbyMines(indicatingSquares_notSet[i].row, indicatingSquares_notSet[i].col, mines);
-        if(indicatingSquares_prepped.length === 0){
-          indicatingSquares_prepped.push({
+    let indicatingSquares_prepped = { //indicating squares with right # mines nearby
+      count: 0
+    };
+    let borderSquares = []; //border square to selected square. might include mine
+    let indicatingSquares_notSet = []; //e.g. border squares without mines.
+
+    let countOfPreppedSquares = 0;
+
+    for (let m in mines) {
+      if (mines.hasOwnProperty(m)) {
+        if(m === "count") continue; // the count property doesn't indicate a mine
+
+        borderSquares = this.getBorderSquares(mines[m].row, mines[m].col);
+        indicatingSquares_notSet = this.getIndicatingSquares(borderSquares, mines);
+
+        for(let i=0; i<indicatingSquares_notSet.length; i++){
+          let row = indicatingSquares_notSet[i].row;
+          let col = indicatingSquares_notSet[i].col;
+          let numNeabyMines = this.getCountOfNearbyMines(indicatingSquares_notSet[i].row, indicatingSquares_notSet[i].col, mines);
+
+          if(indicatingSquares_prepped['count'] === 0){
+            indicatingSquares_prepped['indict-' + row + '-' + col] = {
+              row: row,
+              col: col,
+              numNeabyMines: numNeabyMines
+            };
+            indicatingSquares_prepped['count'] = ++indicatingSquares_prepped['count'];
+            continue;
+          }
+
+          if(this.isMarkedIndicatingSquare(row, col, indicatingSquares_prepped)) continue;
+
+          indicatingSquares_prepped['indict-' + row + '-' + col] = {
             row: row,
             col: col,
             numNeabyMines: numNeabyMines
-          });
-          continue;
+          };
+
+          indicatingSquares_prepped['count'] = ++indicatingSquares_prepped['count'];
         }
-        if(this.isMarkedIndicatingSquare(row, col, indicatingSquares_prepped)) continue;
-        indicatingSquares_prepped.push({
-          row: row,
-          col: col,
-          numNeabyMines: numNeabyMines
-        });
       }
     }
     return indicatingSquares_prepped;
@@ -208,19 +225,17 @@ class App extends Component {
 
   // TODO: get rid of this or use this instead of isMarkedIndicatingSquare
   getIndicatingSquareCount(row, col, currentIndicatingSquares){
-    for(let i=0; i<currentIndicatingSquares.length; i++){
-      if(currentIndicatingSquares[i].row === row){
-        if(currentIndicatingSquares[i].col === col){
-          return currentIndicatingSquares[i].numNeabyMines;
-        }
-      }
-    }
+    if(currentIndicatingSquares['indict-' + row + '-' + col])
+      return currentIndicatingSquares['indict-' + row + '-' + col].numNeabyMines;
     return -1;
   }
 
   setSquares(squares, mines, indicatingSquares){
     let newSquares = squares;
-    for(let s=0; s<newSquares.length; s++){
+    for (let s in newSquares) {
+      if (mines.hasOwnProperty(s)) {
+        if(s === "count") continue;
+      }
       if(this.mineAtLocation(newSquares[s].row, newSquares[s].col, mines)){
         newSquares[s].isReally = "mine";
         continue;
@@ -230,6 +245,7 @@ class App extends Component {
       }
       newSquares[s].isReally = "blank";
     }
+
     return newSquares;
   }
 
@@ -251,19 +267,8 @@ class App extends Component {
     this.resetGame();
   }
 
-  /********* handling click events *********
-   * procedure:
-   */
-
-
   getSquare(rowIndex, colIndex){
-    for(let i=0; i<this.state.squares.length; i++){
-      if(this.state.squares[i].row == rowIndex){
-        if(this.state.squares[i].col == colIndex){
-          return this.state.squares[i];
-        }
-      }
-    }
+    return(this.state.squares["square-" + rowIndex + "-" + colIndex]);
   }
 
   isNumber(val){
@@ -272,13 +277,7 @@ class App extends Component {
   }
   pressButton(rowIndex, colIndex, squares){
     let newSquares = squares;
-    for(let s=0; s<newSquares.length; s++){
-      if(newSquares[s].row == rowIndex){
-        if(newSquares[s].col == colIndex){
-          newSquares[s].pressed = true;
-        }
-      }
-    }
+    newSquares["square-" + rowIndex + "-" + colIndex].pressed = true;
     return newSquares;
   }
 
@@ -286,11 +285,7 @@ class App extends Component {
    * Checks to see if square {rowIndex, colIndex} has triggered a recursive call
    */
   squareTriggeredRecursion(rowIndex, colIndex){
-    for(let t=0; t<this.state.triggeringSquares.length; t++){
-      if( (this.state.triggeringSquares[t].row == rowIndex) &&
-          (this.state.triggeringSquares[t].col == colIndex) )
-          return true;
-    }
+    if(this.state.triggeringSquares["trigger-" + rowIndex + "-" + colIndex]) return true;
     return false;
   }
   /*
@@ -315,14 +310,22 @@ class App extends Component {
 
   addTriggeringSquaresToState(triggeringSquares){
     let newState = this.state;
+    let row;
+    let col;
+    let count = this.state.triggeringSquares["count"];
 
     for(let t=0; t<triggeringSquares.length; t++){
-      newState.triggeringSquares.push(
-        {
-          row: triggeringSquares[t].row,
-          col: triggeringSquares[t].col
-        }
-      );
+      row = triggeringSquares[t].row;
+      col = triggeringSquares[t].col;
+
+      newState.triggeringSquares["trigger-" + row + "-" + col] =
+      {
+        row: row,
+        col: col
+      }
+
+      newState.triggeringSquares["count"] = ++count;
+
     }
 
     this.setState(newState);
@@ -352,9 +355,14 @@ class App extends Component {
     if( this.mineAtLocation(rowIndex, colIndex, this.state.mines) ){
       let revealMines = new Promise(function(resolve) {
         let newState = this.state;
-        for(let m=0; m<this.state.mines.length; m++){
-          newState.squares = this.pressButton(this.state.mines[m].row, this.state.mines[m].col, newState.squares);
+
+        for (let m in this.state.mines) {
+          if (this.state.mines.hasOwnProperty(m)) {
+            if(m === "count") continue;
+            newState.squares = this.pressButton(this.state.mines[m].row, this.state.mines[m].col, newState.squares);
+          }
         }
+
         this.setState(newState);
         resolve();
       }.bind(this));
@@ -370,10 +378,10 @@ class App extends Component {
           newState.numRows = 0;
           newState.numCols = 0;
           newState.numMines = 0;
-          newState.squares = [];
-          newState.mines = [];
-          newState.indicatingSquares = [];
-          newState.triggeringSquares = [];
+          newState.squares = {};
+          newState.mines = {};
+          newState.indicatingSquares = {};
+          newState.triggeringSquares = {};
           this.setState(newState);
 
           //now reset form values
@@ -391,15 +399,15 @@ class App extends Component {
     this.setState(newState);
 
     //get surrounding squares to the one you just clicked
-    let borderSquares = this.getBoarderSquares(rowIndex, colIndex);
+    let borderSquares = this.getBorderSquares(rowIndex, colIndex);
     let trimmedBorderSquares;
     //check to see if there have been any recursive calls
-    if(this.state.triggeringSquares.length > 0){
+    if(this.state.triggeringSquares["count"] > 0){
       //check to see if any of the border squares have performed a recursive call
       trimmedBorderSquares = this.trimBorderSquares(borderSquares);
 
       //if all border squares have been trimmed, there's nothing to do, so return
-      if(trimmedBorderSquares.length == 0) return;
+      if(trimmedBorderSquares.length === 0) return;
 
       //if they haven't performed a recursive call, they will, so we need to add to state
       this.addTriggeringSquaresToState(trimmedBorderSquares);
@@ -417,40 +425,18 @@ class App extends Component {
     }
   }
 
-  pressButton(rowIndex, colIndex, squares){
-    let newSquares = squares;
-    for(let s=0; s<newSquares.length; s++){
-      if(newSquares[s].row == rowIndex){
-        if(newSquares[s].col == colIndex){
-          newSquares[s].pressed = true;
-        }
-      }
-    }
-    return newSquares;
-  }
 
   toggleFlag(rowIndex, colIndex){
     let newState = this.state;
     let square = this.getSquare(rowIndex, colIndex);
+
     if(square.condition === "unknown"){
-      for(let s=0; s<newState.squares.length; s++){
-        if(newState.squares[s].row == rowIndex){
-          if(newState.squares[s].col == colIndex){
-            newState.squares[s].condition = "flagged";
-            newState.squares[s].pressed = true;
-          }
-        }
-      }
+      newState.squares['square-' + rowIndex + '-' + colIndex].condition = 'flagged';
+      newState.squares['square-' + rowIndex + '-' + colIndex].pressed = true;
       this.setState(newState);
     } else if(square.condition === "flagged"){
-      for(let s=0; s<newState.squares.length; s++){
-        if(newState.squares[s].row == rowIndex){
-          if(newState.squares[s].col == colIndex){
-            newState.squares[s].condition = "unknown";
-            newState.squares[s].pressed = false;
-          }
-        }
-      }
+      newState.squares['square-' + rowIndex + '-' + colIndex].condition = 'unknown';
+      newState.squares['square-' + rowIndex + '-' + colIndex].pressed = false;
       this.setState(newState);
     }
   }
