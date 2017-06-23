@@ -9,7 +9,4 @@ What's done:
 3. Click expansion upon clicking a blank space.
 4. Win/loss notification
 5. Added flag functionality
-
-What needs to be done:
-1. Cleanup
-2. Testing
+6. Cleanup
